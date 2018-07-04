@@ -10,19 +10,14 @@
 // Sets default values
 AMyCharacter::AMyCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	MovementManager = CreateDefaultSubobject<UPlayerMovementManager>(TEXT("PlayerMovementManager"));
-
-	// Create a camera boom attached to the root (capsule)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->bAbsoluteRotation = true;
@@ -31,6 +26,15 @@ AMyCharacter::AMyCharacter()
 	CharacterCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("SideViewCamera"));
 	CharacterCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	CharacterCamera->bUsePawnControlRotation = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	GetCharacterMovement()->GravityScale = 2.f;
+	GetCharacterMovement()->AirControl = 0.80f;
+	GetCharacterMovement()->JumpZVelocity = 1000.f;
+	GetCharacterMovement()->GroundFriction = 3.f;
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	GetCharacterMovement()->MaxFlySpeed = 600.f;
 }
 
 // Called when the game starts or when spawned
@@ -55,21 +59,15 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	PlayerInputComponent->BindAxis("MoveRight", this, &AMyCharacter::MoveRight);
-	PlayerInputComponent->BindAxis("Moveleft", this, &AMyCharacter::MoveLeft);
+	PlayerInputComponent->BindAxis("Move", this, &AMyCharacter::Move);
 
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AMyCharacter::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &AMyCharacter::TouchStopped);
 }
 
-void AMyCharacter::MoveRight(float Val)
+void AMyCharacter::Move(float Val)
 {
-	AddMovementInput(FVector(1.0f, 0.f, 0.f), Val);
-}
-
-void AMyCharacter::MoveLeft(float Val)
-{
-	AddMovementInput(FVector(-1.0f, 0.f, 0.f), Val);
+	AddMovementInput(FVector(0.f, -1.f, 0.f), Val);
 }
 
 void AMyCharacter::TouchStarted(const ETouchIndex::Type FingerIndex, const FVector Location)
